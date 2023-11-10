@@ -1,0 +1,4 @@
+.vscode
+
+*.test.pgn
+example.yml

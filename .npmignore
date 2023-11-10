@@ -1,0 +1,11 @@
+.vscode
+benchmarks
+sample-PGNs
+src
+tests
+
+build.ts
+global.d.ts
+bunfig.toml
+bun.lockb
+TODO.md

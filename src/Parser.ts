@@ -1,7 +1,7 @@
-import GameResults from "./GameResults.ts";
-import Lexer from "./Lexer.ts";
-import Line from "./Line.ts";
-import { parseHeader } from "./string-utils.ts";
+import GameResults from "$src/GameResults.ts";
+import Lexer from "$src/Lexer.ts";
+import Line from "$src/Line.ts";
+import { parseHeader } from "$src/string-utils.ts";
 import {
   CommentToken,
   GameResult,
@@ -9,7 +9,7 @@ import {
   NotationToken,
   PGNHeaders,
   PGNToken
-} from "./typings/types.ts";
+} from "$src/typings/types.ts";
 
 export default class Parser {
   public readonly headers: PGNHeaders;

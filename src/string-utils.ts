@@ -1,5 +1,5 @@
-import GameResults from "./GameResults.ts";
-import { GameResult, NumericAnnotationGlyph } from "./typings/types.ts";
+import GameResults from "$src/GameResults.ts";
+import { GameResult, NumericAnnotationGlyph } from "$src/typings/types.ts";
 
 const nagRegex = /^\$\d+$/;
 const headerRegex = /^(?<key>\w+)\s+"(?<value>[^"]*)"/;

@@ -1,0 +1,15 @@
+{
+  "name": "pgn-parser",
+  "module": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "bench": "bun benchmarks/Parser_bench.ts"
+  },
+  "devDependencies": {
+    "bun-types": "latest",
+    "mitata": "^0.1.6"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,4 +1,8 @@
 .vscode
+node_modules
 
+*.d.ts
+!/global.d.ts
+*.js
 *.test.pgn
 example.yml

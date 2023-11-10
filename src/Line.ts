@@ -1,4 +1,4 @@
-import { MoveNode } from "./typings/types.ts";
+import { MoveNode } from "$src/typings/types.ts";
 
 export default class Line {
   private static stringifyMoveNode({ notation, moveNumber, isWhiteMove, comment, NAG }: MoveNode, useThreeDots: boolean) {

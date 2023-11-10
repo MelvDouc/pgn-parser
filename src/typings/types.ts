@@ -1,5 +1,5 @@
-import GameResults from "../GameResults.ts";
-import Line from "../Line.ts";
+import GameResults from "$src/GameResults.ts";
+import Line from "$src/Line.ts";
 
 // ===== ===== ===== ===== =====
 // HEADERS
@@ -43,6 +43,8 @@ export type GameResult = typeof GameResults[keyof typeof GameResults];
 // ===== ===== ===== ===== =====
 // NODES
 // ===== ===== ===== ===== =====
+
+export type { Line };
 
 export interface MoveNode {
   notation: string;

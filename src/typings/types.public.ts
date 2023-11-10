@@ -1,6 +1,7 @@
 export type {
   GameResult,
+  Line,
   MoveNode,
   NumericAnnotationGlyph,
   PGNHeaders
-} from "./types.ts";
+} from "$src/typings/types.ts";

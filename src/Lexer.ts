@@ -4,8 +4,8 @@ import {
   isNAG,
   isValuedTokenChar,
   isWhiteSpace
-} from "./string-utils.ts";
-import { PGNToken } from "./typings/types.ts";
+} from "$src/string-utils.ts";
+import { PGNToken } from "$src/typings/types.ts";
 
 export default class Lexer {
   private static readonly valueLessTokens = {

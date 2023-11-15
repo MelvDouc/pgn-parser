@@ -1,154 +1,172 @@
-import GameResults from "$src/GameResults.ts";
-import Lexer from "$src/Lexer.ts";
-import Line from "$src/Line.ts";
-import { parseHeader } from "$src/string-utils.ts";
-import {
-  CommentToken,
-  GameResult,
-  NAGToken,
-  NotationToken,
-  PGNHeaders,
-  PGNToken
-} from "$src/typings/types.ts";
+import GameResults from "$src/GameResults";
+import Lexer from "$src/Lexer";
+import TokenKind from "$src/TokenKind";
+import Variation from "$src/Variation";
+import { GameResult, MoveNode, PGNHeaders, Token } from "$src/typings/types";
 
 export default class Parser {
-  public readonly headers: PGNHeaders;
-  public readonly mainLine: Line;
-  public readonly moveTextResult: GameResult | null;
-  private readonly tokens: PGNToken[] = [];
-  private position = 0;
+  readonly headers: PGNHeaders;
+  readonly mainLine: Variation;
+  readonly result: GameResult;
+  private index = 0;
+  private readonly tokens: Token[] = [];
 
-  public constructor(pgn: string) {
+  constructor(pgn: string) {
     const lexer = new Lexer(pgn);
-    let token: PGNToken;
+    let token: Token;
 
     do {
       token = lexer.lex();
-      if (token.kind !== "whitespace")
+      if (token.kind !== TokenKind.Whitespace)
         this.tokens.push(token);
-    } while (token.kind !== "end-of-input");
+    } while (token.kind !== TokenKind.EndOfFile);
 
     this.headers = this.parseHeaders();
-    this.mainLine = this.parseNextLine();
-    this.moveTextResult = this.parseMoveTextResult();
-  }
-
-  public get result() {
-    return this.moveTextResult ?? this.headers.Result ?? GameResults.NONE;
+    this.mainLine = this.parseCurrentLine();
+    this.result = this.parseResult();
   }
 
   private get current() {
-    return this.tokens[this.position] ?? this.tokens.at(-1)!;
+    return this.tokens[this.index];
   }
 
-  public getPGNText() {
-    const headerString = Object.entries(this.headers)
+  getNormalizedPGN() {
+    const headers = Object.entries(this.headers)
       .map(([key, value]) => `[${key} "${value}"]`)
       .join("\n");
 
-    return `${headerString}\n\n${this.mainLine.toString()} ${this.result}`;
+    return `${headers}\n\n${this.mainLine.toString()} ${this.result}`;
   }
 
   private parseHeaders() {
     const headers: PGNHeaders = {};
+    const headerRegex = /\[(?<key>\w+)\s+"(?<value>[^"]*)"\]/;
+    let token = this.current;
 
-    while (this.position < this.tokens.length) {
-      const token = this.current;
-      if (token.kind !== "header") break;
+    while (token.kind === TokenKind.Header) {
+      const matchArr = token.value.match(headerRegex);
 
-      const { key, value } = parseHeader(token.value);
+      if (!matchArr)
+        throw new Error(`Invalid header «${token.value}» (${token.row}:${token.col}).`);
+
+      const { key, value } = matchArr.groups!;
       headers[key] = value;
-      this.position++;
+      this.advance();
+      token = this.current;
     }
 
     return headers;
   }
 
-  private parseNextLine(): Line {
-    const line = new Line();
+  private parseCurrentLine() {
+    const line = new Variation();
+    let token: Token;
 
-    main: while (this.position < this.tokens.length) {
-      const token = this.current;
+    do {
+      token = this.current;
+      this.advance();
 
       switch (token.kind) {
-        case "comment":
-          this.handleComment(line, token);
+        case TokenKind.OpeningParenthesis:
+          this.handleVarStart(line, token);
           break;
-        case "notation":
+        case TokenKind.ClosingParenthesis:
+          return line;
+        case TokenKind.MoveNumber:
+          this.handleMoveNumber(line, token);
+          break;
+        case TokenKind.Notation:
           this.handleNotation(line, token);
           break;
-        case "NAG":
+        case TokenKind.NumericAnnotationGlyph:
           this.handleNAG(line, token);
           break;
-        case "opening-parenthesis":
-          this.handleVariation(line);
+        case TokenKind.Comment:
+          this.handleComment(line, token);
           break;
-        case "result":
-        case "closing-parenthesis":
-          break main;
+        case TokenKind.GameResult:
+          if (this.index !== this.tokens.length - 1)
+            throw new Error(`Unexpected game result «${token.value}» (${token.row}:${token.col}).`);
+          break;
+        case TokenKind.Header:
+        case TokenKind.Points:
+        case TokenKind.Bad:
+          throw new Error(`Unexpected token: «${token.value}» (${token.row}:${token.col}).`);
       }
-
-      this.position++;
-    }
+    } while (token.kind !== TokenKind.EndOfFile);
 
     return line;
   }
 
-  private parseMoveTextResult() {
-    if (this.current.kind === "result")
-      return this.current.value;
-    return null;
+  private parseResult() {
+    const resultToken = this.tokens.at(-2);
+
+    if (!resultToken || resultToken.kind !== TokenKind.GameResult)
+      return GameResults.NONE;
+
+    return resultToken.value as GameResult;
   }
 
-  private handleComment(variation: Line, token: CommentToken) {
-    if (variation.moveNodes.length === 0) {
-      variation.comment = token.value;
-      return;
-    }
+  private handleVarStart(line: Variation, { row, col }: Token) {
+    if (line.nodes.length === 0)
+      throw new Error(`A variation cannot start with a nested variation (${row}:${col}).`);
 
-    variation.moveNodes.at(-1)!.comment = token.value;
+    const moveNode = line.nodes.at(-1) as MoveNode;
+    moveNode.variations ??= [];
+    moveNode.variations.push(this.parseCurrentLine());
   }
 
-  private handleNotation(variation: Line, token: NotationToken) {
-    const moveNumberToken = this.tokens[this.position - 1];
+  private handleMoveNumber(line: Variation, token: Token) {
+    this.assertKind(0, TokenKind.Points);
+    const isWhiteMove = this.current.value.length === 1;
+    this.assertKind(1, TokenKind.Notation);
+    line.nodes.push({
+      moveNumber: +token.value,
+      notation: this.peek(1).value,
+      isWhiteMove
+    });
+    this.advance(2);
+  }
 
-    if (moveNumberToken?.kind === "move-number") {
-      variation.moveNodes.push({
-        notation: token.value,
-        moveNumber: moveNumberToken.value,
-        isWhiteMove: moveNumberToken.isWhite
-      });
-      return;
-    }
-
-    const prevNode = variation.moveNodes.at(-1);
-
-    if (!prevNode)
-      throw new Error("Missing move number.");
-
-    variation.moveNodes.push({
+  private handleNotation(line: Variation, token: Token) {
+    const prevNode = line.nodes.at(-1);
+    line.nodes.push({
+      moveNumber: prevNode?.moveNumber ?? 1,
       notation: token.value,
-      moveNumber: prevNode.moveNumber,
-      isWhiteMove: !prevNode.isWhiteMove
+      isWhiteMove: prevNode ? !prevNode.isWhiteMove : true
     });
   }
 
-  private handleNAG(variation: Line, token: NAGToken) {
-    const prevNode = variation.moveNodes.at(-1);
+  private handleComment(line: Variation, token: Token) {
+    if (line.nodes.length === 0) {
+      line.comment = token.value;
+      return;
+    }
 
-    if (prevNode)
-      prevNode.NAG = token.value;
+    const moveNode = line.nodes.at(-1) as MoveNode;
+    moveNode.comment = token.value;
   }
 
-  private handleVariation(line: Line) {
-    const prevNode = line.moveNodes.at(-1);
+  private handleNAG(line: Variation, token: Token) {
+    const moveNode = line.nodes.at(-1);
 
-    if (!prevNode)
-      throw new Error(`Invalid variation.`);
+    if (moveNode)
+      moveNode.NAG = token.value;
+  }
 
-    this.position++;
-    const variation = this.parseNextLine();
-    prevNode.variations ??= [];
-    prevNode.variations.push(variation);
+  private advance(inc = 1) {
+    this.index += inc;
+  }
+
+  private peek(offset: number) {
+    const position = this.index + offset;
+    return this.tokens[position] ?? this.tokens.at(-1) as Token;
+  }
+
+  private assertKind(offset: number, expectedKind: TokenKind) {
+    const { kind, row, col } = this.peek(offset);
+
+    if (kind !== expectedKind)
+      throw new Error(`Unexpected ${TokenKind[kind]} (${row}:${col}); expected ${TokenKind[expectedKind]}.`);
   }
 }

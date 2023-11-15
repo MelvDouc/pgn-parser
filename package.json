@@ -1,13 +1,28 @@
 {
-  "name": "pgn-parser",
+  "name": "pgnify",
+  "version": "1.0.0",
   "module": "dist/index.js",
   "type": "module",
+  "keywords": [
+    "PGN",
+    "parser",
+    "chess"
+  ],
+  "author": {
+    "name": "Melvin Doucet",
+    "email": "melv.douc@gmail.com",
+    "url": "https://www.melvin-doucet.com"
+  },
+  "license": "MIT",
   "scripts": {
-    "bench": "bun benchmarks/Parser_bench.ts"
+    "bench": "bun benchmarks/Parser_bench.ts",
+    "build": "rm -rf dist/* && npx tsc -p tsconfig.npm.json && npx tsc-alias -p tsconfig.npm.json",
+    "prepublish": "bun run build"
   },
   "devDependencies": {
     "bun-types": "latest",
-    "mitata": "^0.1.6"
+    "mitata": "^0.1.6",
+    "tsc-alias": "^1.8.8"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"

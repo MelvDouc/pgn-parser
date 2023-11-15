@@ -7,6 +7,7 @@
     "target": "ES2022",
     "moduleResolution": "bundler",
     "moduleDetection": "force",
+    "esModuleInterop": true,
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "composite": true,
@@ -24,6 +25,9 @@
     "paths": {
       "$src/*": [
         "./src/*"
+      ],
+      "$sample-PGNs/*": [
+        "./sample-PGNs/*"
       ]
     }
   }

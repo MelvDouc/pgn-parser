@@ -1,3 +1,3 @@
-export { default as GameResults } from "$src/GameResults.ts";
-export { default as PGNParser } from "$src/Parser.ts";
-export type * as PGNParserTypes from "$src/typings/types.public.ts";
+export { default as GameResults } from "$src/GameResults";
+export { default as PGNParser } from "$src/Parser";
+export type * as PGNify from "$src/typings/types.public";

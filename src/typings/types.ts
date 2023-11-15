@@ -1,5 +1,6 @@
-import GameResults from "$src/GameResults.ts";
-import Line from "$src/Line.ts";
+import GameResults from "$src/GameResults";
+import TokenKind from "$src/TokenKind";
+import Variation from "$src/Variation";
 
 // ===== ===== ===== ===== =====
 // HEADERS
@@ -37,62 +38,26 @@ export type PGNHeaders = Partial<BaseHeaders> & {
 // SPECIAL
 // ===== ===== ===== ===== =====
 
-export type NumericAnnotationGlyph = `$${string}`;
 export type GameResult = typeof GameResults[keyof typeof GameResults];
 
 // ===== ===== ===== ===== =====
 // NODES
 // ===== ===== ===== ===== =====
 
-export type { Line };
+export type { Variation };
+
+export interface Token {
+  readonly kind: TokenKind;
+  readonly value: string;
+  readonly row: number;
+  readonly col: number;
+}
 
 export interface MoveNode {
   notation: string;
   moveNumber: number;
   isWhiteMove: boolean;
-  NAG?: NumericAnnotationGlyph;
+  NAG?: string;
   comment?: string;
-  variations?: Line[];
+  variations?: Variation[];
 };
-
-export interface HeaderToken {
-  kind: "header";
-  value: string;
-};
-
-export interface MoveNumberToken {
-  kind: "move-number";
-  value: number;
-  isWhite: boolean;
-};
-
-export interface CommentToken {
-  kind: "comment";
-  value: string;
-};
-
-export interface NotationToken {
-  kind: "notation";
-  value: string;
-}
-
-export interface NAGToken {
-  kind: "NAG";
-  value: NumericAnnotationGlyph;
-}
-
-export interface ResultToken {
-  kind: "result";
-  value: GameResult;
-}
-
-export type PGNToken =
-  | {
-    kind: "end-of-input" | "whitespace" | "opening-parenthesis" | "closing-parenthesis";
-  }
-  | ResultToken
-  | NAGToken
-  | CommentToken
-  | HeaderToken
-  | MoveNumberToken
-  | NotationToken;

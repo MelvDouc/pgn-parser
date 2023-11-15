@@ -1,118 +1,161 @@
+import TokenKind from "$src/TokenKind";
 import {
   EOF,
+  isDigit,
   isGameResult,
-  isNAG,
-  isValuedTokenChar,
+  isNotReservedPunctuationOrWhitespace,
   isWhiteSpace
-} from "$src/string-utils.ts";
-import { PGNToken } from "$src/typings/types.ts";
+} from "$src/string-utils";
+import { Token } from "$src/typings/types";
 
 export default class Lexer {
-  private static readonly valueLessTokens = {
-    EndOfInput: { kind: "end-of-input" },
-    Whitespace: { kind: "whitespace" },
-    OpeningParenthesis: { kind: "opening-parenthesis" },
-    ClosingParenthesis: { kind: "closing-parenthesis" }
-  } as const;
-
-  private readonly input: string;
-  private position = 0;
+  private row = 0;
+  private col = 0;
+  private readonly lines: string[];
 
   public constructor(input: string) {
-    this.input = input;
+    this.lines = input.split(/\r?\n/);
   }
 
-  private get current() {
-    return this.input[this.position] ?? EOF;
-  }
+  private get currentChar(): string {
+    if (this.row >= this.lines.length)
+      return EOF;
 
-  public lex(): PGNToken {
-    const char = this.current;
-
-    switch (char) {
-      case EOF:
-        return Lexer.valueLessTokens.EndOfInput;
-      case "[":
-        return this.getHeaderToken();
-      case "{":
-        return this.getCommentToken();
-      case "(":
-        return this.getOpeningParenthesisToken();
-      case ")":
-        return this.getClosingParenthesisToken();
-      default:
-        if (isWhiteSpace(char))
-          return this.getWhitespaceToken();
-        return this.getValuedToken();
+    if (this.col >= this.lines[this.row].length) {
+      this.row++;
+      this.col = 0;
+      return this.currentChar;
     }
+
+    return this.lines[this.row][this.col];
+  }
+
+  public lex(): Token {
+    switch (this.currentChar) {
+      case EOF:
+        return this.getEndOfFileToken();
+      case "(":
+        return this.getParenToken(TokenKind.OpeningParenthesis);
+      case ")":
+        return this.getParenToken(TokenKind.ClosingParenthesis);
+      case "[":
+        return this.scanHeader();
+      case "{":
+        return this.scanComment();
+      case ".":
+        return this.scanPoints();
+      case "$":
+        return this.scanNAG();
+      default:
+        return this.scanOther();
+    }
+  }
+
+  private advance() {
+    this.col++;
+  }
+
+  private getEndOfFileToken() {
+    return {
+      kind: TokenKind.EndOfFile,
+      value: EOF,
+      row: this.row,
+      col: this.col
+    };
+  }
+
+  private getParenToken(kind: TokenKind.OpeningParenthesis | TokenKind.ClosingParenthesis) {
+    const { row, col } = this;
+    this.advance(); // skip paren
+    return {
+      kind,
+      value: "",
+      row,
+      col
+    };
   }
 
   private scanWhile(predicate: (char: string, substring: string) => boolean) {
     let substring = "";
 
     for (
-      let char = this.current;
-      predicate(char, substring) && char !== EOF;
-      char = this.current
+      let char = this.currentChar;
+      char !== EOF && predicate(char, substring);
+      char = this.currentChar
     ) {
       substring += char;
-      this.position++;
+      this.advance();
     }
 
     return substring;
   }
 
-  private getHeaderToken(): PGNToken {
-    this.position++;
-    const header = this.scanWhile((char) => char !== "]");
-    this.position++;
+  private scanHeader() {
+    const { row, col } = this;
+    const header = this.scanWhile((_, substring) => substring.at(-1) !== "]");
     return {
-      kind: "header",
-      value: header
+      kind: TokenKind.Header,
+      value: header,
+      row,
+      col
     };
   }
 
-  private getCommentToken(): PGNToken {
-    this.position++;
+  private scanComment() {
+    const { row, col } = this;
+    this.advance(); // skip '{'
     const comment = this.scanWhile((char) => char !== "}");
-    this.position++;
+    this.advance(); // skip '}'
     return {
-      kind: "comment",
-      value: comment.trim()
+      kind: TokenKind.Comment,
+      value: comment.trim(),
+      row,
+      col
     };
   }
 
-  private getWhitespaceToken() {
-    this.scanWhile(isWhiteSpace);
-    return Lexer.valueLessTokens.Whitespace;
-  }
-
-  private getOpeningParenthesisToken() {
-    this.position++;
-    return Lexer.valueLessTokens.OpeningParenthesis;
-  }
-
-  private getClosingParenthesisToken() {
-    this.position++;
-    return Lexer.valueLessTokens.ClosingParenthesis;
-  }
-
-  private getValuedToken(): PGNToken {
-    const value = this.scanWhile(isValuedTokenChar);
-
-    if (isGameResult(value))
-      return { kind: "result", value };
-
-    if (isNAG(value))
-      return { kind: "NAG", value };
-
-    if (!value.endsWith("."))
-      return { kind: "notation", value };
-
+  private scanPoints() {
+    const { row, col } = this;
+    const points = this.scanWhile((char) => char === ".");
     return {
-      kind: "move-number",
-      value: parseInt(value),
-      isWhite: !value.endsWith("...")
+      kind: TokenKind.Points,
+      value: points,
+      row,
+      col
     };
+  }
+
+  private scanNAG() {
+    const { row, col } = this;
+    this.advance(); // skip '$'
+    const value = "$" + this.scanWhile(isDigit);
+    const kind = value.length === 0
+      ? TokenKind.Bad
+      : TokenKind.NumericAnnotationGlyph;
+
+    return { kind, value, row, col };
+  }
+
+  private scanOther() {
+    const { row, col } = this;
+
+    if (isWhiteSpace(this.currentChar)) {
+      this.scanWhile(isWhiteSpace);
+      return {
+        kind: TokenKind.Whitespace,
+        value: "",
+        row,
+        col
+      };
+    }
+
+    const value = this.scanWhile(isNotReservedPunctuationOrWhitespace);
+    const kind = /^\d+$/.test(value)
+      ? TokenKind.MoveNumber
+      : isGameResult(value)
+        ? TokenKind.GameResult
+        : TokenKind.Notation;
+
+    return { kind, value, row, col };
   }
 }

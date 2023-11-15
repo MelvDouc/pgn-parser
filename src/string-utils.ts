@@ -1,10 +1,20 @@
-import GameResults from "$src/GameResults.ts";
-import { GameResult, NumericAnnotationGlyph } from "$src/typings/types.ts";
-
-const nagRegex = /^\$\d+$/;
-const headerRegex = /^(?<key>\w+)\s+"(?<value>[^"]*)"/;
+import GameResults from "$src/GameResults";
+import { GameResult } from "$src/typings/types";
 
 export const EOF = "\0";
+
+export function isDigit(char: string) {
+  return char === "0"
+    || char === "1"
+    || char === "2"
+    || char === "3"
+    || char === "4"
+    || char === "5"
+    || char === "6"
+    || char === "7"
+    || char === "8"
+    || char === "9";
+}
 
 export function isWhiteSpace(char: string) {
   return char === " "
@@ -34,10 +44,11 @@ export function isBracket(char: string) {
     || char === "}";
 }
 
-export function isValuedTokenChar(char: string, substring: string) {
-  if (substring.endsWith("."))
-    return char === ".";
-  return !isWhiteSpace(char) && !isBracket(char);
+export function isNotReservedPunctuationOrWhitespace(char: string) {
+  return char !== "."
+    && char !== "$"
+    && !isBracket(char)
+    && !isWhiteSpace(char);
 }
 
 export function isGameResult(arg: string): arg is GameResult {
@@ -45,20 +56,4 @@ export function isGameResult(arg: string): arg is GameResult {
     || arg === GameResults.DRAW
     || arg === GameResults.WHITE_WIN
     || arg === GameResults.BLACK_WIN;
-}
-
-export function isNAG(arg: string): arg is NumericAnnotationGlyph {
-  return nagRegex.test(arg);
-}
-
-export function parseHeader(value: string) {
-  const matchArr = value.match(headerRegex);
-
-  if (!matchArr || !matchArr.groups)
-    throw new Error(`Invalid header: <${value}>.`);
-
-  return {
-    key: matchArr.groups.key,
-    value: matchArr.groups.value
-  };
 }

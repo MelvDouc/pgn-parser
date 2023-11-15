@@ -1,12 +1,13 @@
-import Parser from "$src/Parser.ts";
+import pgn from "$sample-PGNs/game1.pgn";
+import Parser from "$src/Parser";
+import { Variation } from "$src/typings/types";
 import { bench, run } from "mitata";
-import p from "../sample-PGNs/game1.pgn";
 
-// const pgn = await Bun.file("sample-PGNs/game1.pgn").text();
+let mainLine: Variation;
 
 bench("Parse long game.", () => {
-  const parser = new Parser(p);
-  parser.mainLine;
+  const parser = new Parser(pgn);
+  mainLine = parser.mainLine;
 });
 
 await run();

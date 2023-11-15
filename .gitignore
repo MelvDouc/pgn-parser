@@ -1,8 +1,10 @@
 .vscode
+dist
 node_modules
 
 *.d.ts
 !/global.d.ts
 *.js
 *.test.pgn
+*.tsbuildinfo
 example.yml

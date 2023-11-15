@@ -3,4 +3,4 @@
 - [X] Parser.toString()
 - [X] handle comments
 - [ ] multiple PGNs
-- [ ] error lines and columns
+- [X] error lines and columns

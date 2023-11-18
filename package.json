@@ -1,6 +1,6 @@
 {
   "name": "pgnify",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "module": "dist/index.js",
   "type": "module",
   "keywords": [
@@ -18,6 +18,10 @@
     "bench": "bun benchmarks/Parser_bench.ts",
     "build": "rm -rf dist/* && npx tsc -p tsconfig.npm.json && npx tsc-alias -p tsconfig.npm.json",
     "prepublish": "bun run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MelvDouc/pgnify.git"
   },
   "devDependencies": {
     "bun-types": "latest",

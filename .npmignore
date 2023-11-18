@@ -1,5 +1,6 @@
 *
 !/dist/*
+!/dist/typings/*
 !/LICENSE
 !/package.json
 !/README.md

@@ -3,4 +3,4 @@ export type {
   MoveNode,
   PGNHeaders,
   Variation
-} from "$src/typings/types";
+} from "$src/typings/types.ts";

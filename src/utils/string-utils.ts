@@ -1,9 +1,9 @@
-import GameResults from "$src/GameResults";
-import { GameResult } from "$src/typings/types";
+import GameResults from "$src/GameResults.ts";
+import { GameResult } from "$src/typings/types.ts";
 
 export const EOF = "\0";
 
-export function isDigit(char: string) {
+export function isDigit(char: string): boolean {
   return char === "0"
     || char === "1"
     || char === "2"
@@ -16,7 +16,7 @@ export function isDigit(char: string) {
     || char === "9";
 }
 
-export function isWhiteSpace(char: string) {
+export function isWhiteSpace(char: string): boolean {
   return char === " "
     || char === "\n"
     || char === "\t"
@@ -35,7 +35,7 @@ export function isWhiteSpace(char: string) {
     || char === "\ufeff";
 }
 
-export function isBracket(char: string) {
+export function isBracket(char: string): boolean {
   return char === "("
     || char === ")"
     || char === "["
@@ -44,7 +44,7 @@ export function isBracket(char: string) {
     || char === "}";
 }
 
-export function isNotReservedPunctuationOrWhitespace(char: string) {
+export function isNotReservedPunctuationOrWhitespace(char: string): boolean {
   return char !== "."
     && char !== "$"
     && !isBracket(char)

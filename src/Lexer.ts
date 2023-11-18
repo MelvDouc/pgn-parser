@@ -1,37 +1,30 @@
-import TokenKind from "$src/TokenKind";
+import TokenKind from "$src/TokenKind.ts";
 import {
   EOF,
   isDigit,
   isGameResult,
   isNotReservedPunctuationOrWhitespace,
   isWhiteSpace
-} from "$src/string-utils";
-import { Token } from "$src/typings/types";
+} from "$src/utils/string-utils.ts";
+import { Token } from "$src/typings/types.ts";
 
 export default class Lexer {
-  private row = 0;
-  private col = 0;
-  private readonly lines: string[];
+  private index = 0;
+  private readonly input: string;
 
   public constructor(input: string) {
-    this.lines = input.split(/\r?\n/);
+    this.input = input;
   }
 
-  private get currentChar(): string {
-    if (this.row >= this.lines.length)
+  private get current(): string {
+    if (this.index >= this.input.length)
       return EOF;
 
-    if (this.col >= this.lines[this.row].length) {
-      this.row++;
-      this.col = 0;
-      return this.currentChar;
-    }
-
-    return this.lines[this.row][this.col];
+    return this.input[this.index];
   }
 
   public lex(): Token {
-    switch (this.currentChar) {
+    switch (this.current) {
       case EOF:
         return this.getEndOfFileToken();
       case "(":
@@ -51,37 +44,35 @@ export default class Lexer {
     }
   }
 
-  private advance() {
-    this.col++;
+  private advance(): void {
+    this.index++;
   }
 
-  private getEndOfFileToken() {
+  private getEndOfFileToken(): Token {
     return {
       kind: TokenKind.EndOfFile,
       value: EOF,
-      row: this.row,
-      col: this.col
+      index: this.index
     };
   }
 
-  private getParenToken(kind: TokenKind.OpeningParenthesis | TokenKind.ClosingParenthesis) {
-    const { row, col } = this;
+  private getParenToken(kind: TokenKind.OpeningParenthesis | TokenKind.ClosingParenthesis): Token {
+    const { index } = this;
     this.advance(); // skip paren
     return {
       kind,
       value: "",
-      row,
-      col
+      index
     };
   }
 
-  private scanWhile(predicate: (char: string, substring: string) => boolean) {
+  private scanWhile(predicate: (char: string, substring: string) => boolean): string {
     let substring = "";
 
     for (
-      let char = this.currentChar;
+      let char = this.current;
       char !== EOF && predicate(char, substring);
-      char = this.currentChar
+      char = this.current
     ) {
       substring += char;
       this.advance();
@@ -90,62 +81,58 @@ export default class Lexer {
     return substring;
   }
 
-  private scanHeader() {
-    const { row, col } = this;
+  private scanHeader(): Token {
+    const { index } = this;
     const header = this.scanWhile((_, substring) => substring.at(-1) !== "]");
     return {
       kind: TokenKind.Header,
       value: header,
-      row,
-      col
+      index
     };
   }
 
-  private scanComment() {
-    const { row, col } = this;
+  private scanComment(): Token {
+    const { index } = this;
     this.advance(); // skip '{'
-    const comment = this.scanWhile((char) => char !== "}");
+    const comment = this.scanWhile((char, substring) => char !== "}" && substring.at(-1) !== "\\");
     this.advance(); // skip '}'
     return {
       kind: TokenKind.Comment,
       value: comment.trim(),
-      row,
-      col
+      index
     };
   }
 
-  private scanPoints() {
-    const { row, col } = this;
+  private scanPoints(): Token {
+    const { index } = this;
     const points = this.scanWhile((char) => char === ".");
     return {
       kind: TokenKind.Points,
       value: points,
-      row,
-      col
+      index
     };
   }
 
-  private scanNAG() {
-    const { row, col } = this;
+  private scanNAG(): Token {
+    const { index } = this;
     this.advance(); // skip '$'
-    const value = "$" + this.scanWhile(isDigit);
-    const kind = value.length === 0
+    const digits = this.scanWhile(isDigit);
+    const kind = digits.length === 0
       ? TokenKind.Bad
       : TokenKind.NumericAnnotationGlyph;
 
-    return { kind, value, row, col };
+    return { kind, value: "$" + digits, index };
   }
 
-  private scanOther() {
-    const { row, col } = this;
+  private scanOther(): Token {
+    const { index } = this;
 
-    if (isWhiteSpace(this.currentChar)) {
+    if (isWhiteSpace(this.current)) {
       this.scanWhile(isWhiteSpace);
       return {
         kind: TokenKind.Whitespace,
         value: "",
-        row,
-        col
+        index
       };
     }
 
@@ -156,6 +143,6 @@ export default class Lexer {
         ? TokenKind.GameResult
         : TokenKind.Notation;
 
-    return { kind, value, row, col };
+    return { kind, value, index };
   }
 }

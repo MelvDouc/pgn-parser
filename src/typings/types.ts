@@ -1,6 +1,6 @@
-import GameResults from "$src/GameResults";
-import TokenKind from "$src/TokenKind";
-import Variation from "$src/Variation";
+import GameResults from "$src/GameResults.ts";
+import TokenKind from "$src/TokenKind.ts";
+import Variation from "$src/Variation.ts";
 
 // ===== ===== ===== ===== =====
 // HEADERS
@@ -44,13 +44,12 @@ export type GameResult = typeof GameResults[keyof typeof GameResults];
 // NODES
 // ===== ===== ===== ===== =====
 
-export type { Variation };
+export type { TokenKind, Variation };
 
 export interface Token {
   readonly kind: TokenKind;
   readonly value: string;
-  readonly row: number;
-  readonly col: number;
+  readonly index: number;
 }
 
 export interface MoveNode {

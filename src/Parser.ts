@@ -1,8 +1,8 @@
-import GameResults from "$src/GameResults.ts";
 import Lexer from "$src/Lexer.ts";
-import TokenKind from "$src/TokenKind.ts";
 import Variation from "$src/Variation.ts";
-import { GameResult, PGNHeaders, Token } from "$src/typings/types.ts";
+import GameResults from "$src/constants/GameResults.ts";
+import TokenKind from "$src/constants/TokenKind.ts";
+import { GameResult, IVariation, PGNHeaders, Token } from "$src/typings/types.ts";
 import { UnexpectedTokenError } from "$src/utils/errors.ts";
 
 export default class Parser {
@@ -34,7 +34,7 @@ export default class Parser {
   }
 
   public readonly headers: PGNHeaders;
-  public readonly mainLine: Variation;
+  public readonly mainLine: IVariation;
   public readonly result: GameResult;
   private index = 0;
   private readonly tokens: Token[] = [];
@@ -83,9 +83,9 @@ export default class Parser {
     return headers;
   }
 
-  private parseMoves(): Variation {
-    const stack: Variation[] = [];
-    let line = new Variation();
+  private parseMoves(): IVariation {
+    const stack: IVariation[] = [];
+    let line: IVariation = new Variation();
     let token: Token;
 
     do {
@@ -137,7 +137,7 @@ export default class Parser {
     return this.tokens[this.index + offset] ?? this.tokens[this.tokens.length - 1];
   }
 
-  private handleMoveNumber(line: Variation, token: Token): void {
+  private handleMoveNumber(line: IVariation, token: Token): void {
     this.assertKind(0, TokenKind.Points);
     const isWhiteMove = this.current.value === ".";
     this.assertKind(1, TokenKind.Notation);
@@ -149,7 +149,7 @@ export default class Parser {
     this.advance(2);
   }
 
-  private handleNotation(line: Variation, token: Token): void {
+  private handleNotation(line: IVariation, token: Token): void {
     const prevNode = line.nodes.at(-1);
     line.nodes.push({
       moveNumber: prevNode?.moveNumber ?? 1,
@@ -158,7 +158,7 @@ export default class Parser {
     });
   }
 
-  private handleComment(line: Variation, token: Token): void {
+  private handleComment(line: IVariation, token: Token): void {
     const moveNode = line.nodes.at(-1);
 
     if (!moveNode) {
@@ -169,7 +169,7 @@ export default class Parser {
     moveNode.comment = token.value;
   }
 
-  private handleNAG(line: Variation, token: Token): void {
+  private handleNAG(line: IVariation, token: Token): void {
     const moveNode = line.nodes.at(-1);
 
     if (moveNode)

@@ -1,6 +1,6 @@
-import { GameResult, MoveNode, Token } from "$src/typings/types.ts";
+import { GameResult, IVariation, MoveNode } from "$src/typings/types.ts";
 
-export default class Variation {
+export default class Variation implements IVariation {
   private static stringifyMoveNode({ notation, moveNumber, isWhiteMove, comment, NAG }: MoveNode, isVarStartOrAfterVar: boolean) {
     if (NAG)
       notation += ` ${NAG}`;
@@ -46,7 +46,7 @@ export default class Variation {
       if (node.variations) {
         moveText += "\n";
         node.variations.forEach((variation) => {
-          moveText += `${leadingSpaces + "  "}( ${variation._toMoveText(depth + 1)} )\n`;
+          moveText += `${leadingSpaces + "  "}( ${(variation as Variation)._toMoveText(depth + 1)} )\n`;
         });
         moveText += leadingSpaces;
       } else if (i < arr.length - 1) {

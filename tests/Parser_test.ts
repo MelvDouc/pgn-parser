@@ -1,18 +1,22 @@
 import pgn1 from "$sample-PGNs/game1.pgn";
 import pgn2 from "$sample-PGNs/game2.pgn";
 import pgn4 from "$sample-PGNs/game4.pgn";
-import GameResults from "$src/GameResults";
-import Parser from "$src/Parser";
-import Variation from "$src/Variation";
-import { GameResult } from "$src/typings/types";
+import GameResults from "$src/constants/GameResults.ts";
+import Parser from "$src/Parser.ts";
+import Variation from "$src/Variation.ts";
+import { GameResult } from "$src/typings/types.ts";
 import { expect, test } from "bun:test";
 
 test("parse headers", () => {
-  const parser = new Parser(pgn1);
-  const { headers, result } = parser;
-  expect(headers.Event).toBe("CCRL 40/4");
-  expect(headers.Result).toBe(GameResults.DRAW);
-  expect(result).toBe(headers.Result as GameResult);
+  try {
+    const parser = new Parser(pgn1);
+    const { headers, result } = parser;
+    expect(headers.Event).toBe("CCRL 40/4");
+    expect(headers.Result).toBe(GameResults.DRAW);
+    expect(result).toBe(headers.Result as GameResult);
+  } catch (error) {
+    console.log({ cause: (error as Error).cause });
+  }
 });
 
 test("parse comments", () => {

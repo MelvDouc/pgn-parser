@@ -1,4 +1,5 @@
-import TokenKind from "$src/TokenKind.ts";
+import TokenKind from "$src/constants/TokenKind.ts";
+import { Token } from "$src/typings/types.ts";
 import {
   EOF,
   isDigit,
@@ -6,7 +7,6 @@ import {
   isNotReservedPunctuationOrWhitespace,
   isWhiteSpace
 } from "$src/utils/string-utils.ts";
-import { Token } from "$src/typings/types.ts";
 
 export default class Lexer {
   private index = 0;
@@ -137,12 +137,25 @@ export default class Lexer {
     }
 
     const value = this.scanWhile(isNotReservedPunctuationOrWhitespace);
-    const kind = /^\d+$/.test(value)
-      ? TokenKind.MoveNumber
-      : isGameResult(value)
-        ? TokenKind.GameResult
-        : TokenKind.Notation;
 
-    return { kind, value, index };
+    if (isGameResult(value))
+      return {
+        kind: TokenKind.GameResult,
+        value,
+        index
+      };
+
+    if (isDigit(this.current))
+      return {
+        kind: TokenKind.MoveNumber,
+        value,
+        index
+      };
+
+    return {
+      kind: TokenKind.Notation,
+      value,
+      index
+    };
   }
 }

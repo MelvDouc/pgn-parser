@@ -1,4 +1,4 @@
-import GameResults from "$src/GameResults.ts";
+import GameResults from "$src/constants/GameResults.ts";
 import { GameResult } from "$src/typings/types.ts";
 
 export const EOF = "\0";

@@ -1,6 +1,5 @@
-import GameResults from "$src/GameResults.ts";
-import TokenKind from "$src/TokenKind.ts";
-import Variation from "$src/Variation.ts";
+import GameResults from "$src/constants/GameResults.ts";
+import TokenKind from "$src/constants/TokenKind.ts";
 
 // ===== ===== ===== ===== =====
 // HEADERS
@@ -44,7 +43,7 @@ export type GameResult = typeof GameResults[keyof typeof GameResults];
 // NODES
 // ===== ===== ===== ===== =====
 
-export type { TokenKind, Variation };
+export type { TokenKind };
 
 export interface Token {
   readonly kind: TokenKind;
@@ -58,5 +57,13 @@ export interface MoveNode {
   isWhiteMove: boolean;
   NAG?: string;
   comment?: string;
-  variations?: Variation[];
+  variations?: IVariation[];
 };
+
+export interface IVariation {
+  readonly nodes: MoveNode[];
+  comment?: string;
+  result?: GameResult;
+  addVariation(tokenIndex: number): IVariation;
+  toString(): string;
+}

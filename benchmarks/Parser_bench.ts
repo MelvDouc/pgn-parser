@@ -1,12 +1,13 @@
-import pgn from "$sample-PGNs/game1.pgn";
-import Parser from "$src/Parser";
-import { Variation } from "$src/typings/types";
+
+import { PGNParser, type Variation } from "$src/index.js";
+import { readFile } from "fs/promises";
 import { bench, run } from "mitata";
 
+const pgn1 = await readFile("sample-PGNs/game1.pgn", "utf-8");
 let mainLine: Variation;
 
 bench("Parse long game.", () => {
-  const parser = new Parser(pgn);
+  const parser = new PGNParser(pgn1);
   mainLine = parser.mainLine;
 });
 

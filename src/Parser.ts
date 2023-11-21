@@ -1,9 +1,9 @@
-import GameResults from "$src/GameResults.ts";
-import Lexer from "$src/Lexer.ts";
-import TokenKind from "$src/TokenKind.ts";
-import Variation from "$src/Variation.ts";
-import { GameResult, PGNHeaders, Token } from "$src/typings/types.ts";
-import { UnexpectedTokenError } from "$src/utils/errors.ts";
+import Lexer from "$src/Lexer.js";
+import Variation from "$src/Variation.js";
+import GameResults from "$src/constants/GameResults.js";
+import TokenKind from "$src/constants/TokenKind.js";
+import type { GameResult, PGNHeaders, Token } from "$src/typings/types.js";
+import { UnexpectedTokenError } from "$src/utils/errors.js";
 
 export default class Parser {
   public static splitPGNs(input: string): string[] {
@@ -54,16 +54,16 @@ export default class Parser {
     this.result = this.mainLine.result ?? GameResults.NONE;
   }
 
-  private get current(): Token {
+  private get current() {
     return this.peek(0);
   }
 
-  public getNormalizedPGN(): string {
+  public getNormalizedPGN() {
     const headers = Parser.stringifyHeaders(this.headers);
     return `${headers}\n\n${this.mainLine.toString()} ${this.result}`;
   }
 
-  private parseHeaders(): PGNHeaders {
+  private parseHeaders() {
     const headers: PGNHeaders = {};
     const headerRegex = /\[(?<key>\w+)\s+"(?<value>[^"]*)"\]/;
     let token = this.current;
@@ -83,7 +83,7 @@ export default class Parser {
     return headers;
   }
 
-  private parseMoves(): Variation {
+  private parseMoves() {
     const stack: Variation[] = [];
     let line = new Variation();
     let token: Token;
@@ -133,11 +133,11 @@ export default class Parser {
     return line;
   }
 
-  private peek(offset: number): Token {
+  private peek(offset: number) {
     return this.tokens[this.index + offset] ?? this.tokens[this.tokens.length - 1];
   }
 
-  private handleMoveNumber(line: Variation, token: Token): void {
+  private handleMoveNumber(line: Variation, token: Token) {
     this.assertKind(0, TokenKind.Points);
     const isWhiteMove = this.current.value === ".";
     this.assertKind(1, TokenKind.Notation);
@@ -150,7 +150,7 @@ export default class Parser {
   }
 
   private handleNotation(line: Variation, token: Token): void {
-    const prevNode = line.nodes.at(-1);
+    const prevNode = line.lastNode;
     line.nodes.push({
       moveNumber: prevNode?.moveNumber ?? 1,
       notation: token.value,
@@ -159,7 +159,7 @@ export default class Parser {
   }
 
   private handleComment(line: Variation, token: Token): void {
-    const moveNode = line.nodes.at(-1);
+    const moveNode = line.lastNode;
 
     if (!moveNode) {
       line.comment = token.value;
@@ -170,7 +170,7 @@ export default class Parser {
   }
 
   private handleNAG(line: Variation, token: Token): void {
-    const moveNode = line.nodes.at(-1);
+    const moveNode = line.lastNode;
 
     if (moveNode)
       moveNode.NAG = token.value;
@@ -180,7 +180,7 @@ export default class Parser {
     this.index += inc;
   }
 
-  private assertKind(offset: number, expectedKind: TokenKind): void {
+  private assertKind(offset: number, expectedKind: TokenKind) {
     const token = this.peek(offset);
 
     if (token.kind !== expectedKind) {

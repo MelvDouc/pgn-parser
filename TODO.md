@@ -2,5 +2,5 @@
 
 - [X] Parser.toString()
 - [X] handle comments
-- [ ] multiple PGNs
-- [X] error lines and columns
+- [X] multiple PGNs
+- [X] error indices

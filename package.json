@@ -1,6 +1,9 @@
 {
   "name": "pgnify",
-  "version": "1.0.5",
+  "version": "1.0.7",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "type": "module",
   "author": {
     "name": "Melvin Doucet",
     "email": "melv.douc@gmail.com",
@@ -10,13 +13,13 @@
     "type": "git",
     "url": "https://github.com/MelvDouc/pgnify.git"
   },
-  "main": "dist/index.js",
-  "module": "dist/index.js",
   "devDependencies": {
-    "bun-plugin-dts": "^0.2.1",
-    "bun-types": "latest",
+    "@types/chai": "^4.3.11",
+    "@types/node": "^20.10.5",
+    "chai": "^4.3.10",
     "mitata": "^0.1.6",
     "tsc-alias": "^1.8.8",
+    "tsx": "^4.7.0",
     "typescript": "^5.3.2"
   },
   "keywords": [
@@ -26,9 +29,9 @@
   ],
   "license": "MIT",
   "scripts": {
-    "bench": "bun benchmarks/Parser_bench.ts",
-    "build": "rm -rf dist/* && bun run scripts/build.ts",
-    "prepublishOnly": "bun run build"
-  },
-  "type": "module"
+    "test": "tsx --test ./tests/**/*_test.ts",
+    "bench": "tsx ./benchmarks/Parser_bench.ts",
+    "build": "rm -rf dist/* && npx tsc -p tsconfig.build.json && npx tsc-alias -p tsconfig.build.json",
+    "prepublishOnly": "npm run build"
+  }
 }

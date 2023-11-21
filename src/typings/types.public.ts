@@ -1,6 +1,5 @@
 export type {
   GameResult,
   MoveNode,
-  PGNHeaders,
-  Variation
-} from "$src/typings/types.ts";
+  PGNHeaders
+} from "$src/typings/types.js";

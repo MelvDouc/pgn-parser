@@ -1,4 +1,4 @@
-import { GameResult, MoveNode, Token } from "$src/typings/types.ts";
+import type { GameResult, MoveNode } from "$src/typings/types.js";
 
 export default class Variation {
   private static stringifyMoveNode({ notation, moveNumber, isWhiteMove, comment, NAG }: MoveNode, isVarStartOrAfterVar: boolean) {
@@ -21,19 +21,22 @@ export default class Variation {
   public comment?: string;
   public result?: GameResult;
 
-  public addVariation(tokenIndex: number): Variation {
-    const node = this.nodes.at(-1);
+  public get lastNode() {
+    return this.nodes[this.nodes.length - 1];
+  }
 
-    if (!node)
+  public addVariation(tokenIndex: number) {
+    if (this.nodes.length === 0)
       throw new SyntaxError(`A variation cannot start with a nested variation at index ${tokenIndex}.`);
 
+    const node = this.nodes[this.nodes.length - 1];
     const variation = new Variation();
     node.variations ??= [];
     node.variations.push(variation);
     return variation;
   }
 
-  public toString(): string {
+  public toString() {
     return this._toMoveText(0);
   }
 

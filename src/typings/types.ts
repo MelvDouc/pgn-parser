@@ -1,6 +1,6 @@
-import GameResults from "$src/GameResults.ts";
-import TokenKind from "$src/TokenKind.ts";
-import Variation from "$src/Variation.ts";
+import GameResults from "$src/constants/GameResults.js";
+import TokenKind from "$src/constants/TokenKind.js";
+import type Variation from "$src/Variation.js";
 
 // ===== ===== ===== ===== =====
 // HEADERS
@@ -43,8 +43,6 @@ export type GameResult = typeof GameResults[keyof typeof GameResults];
 // ===== ===== ===== ===== =====
 // NODES
 // ===== ===== ===== ===== =====
-
-export type { TokenKind, Variation };
 
 export interface Token {
   readonly kind: TokenKind;

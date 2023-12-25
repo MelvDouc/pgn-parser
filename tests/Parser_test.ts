@@ -1,85 +1,79 @@
-import pgn1 from "$sample-PGNs/game1.pgn";
-import pgn2 from "$sample-PGNs/game2.pgn";
-import pgn4 from "$sample-PGNs/game4.pgn";
-import GameResults from "$src/constants/GameResults.ts";
-import Parser from "$src/Parser.ts";
-import Variation from "$src/Variation.ts";
-import { GameResult } from "$src/typings/types.ts";
-import { expect, test } from "bun:test";
+import { PGNParser, GameResults } from "$src/index.js";
+import Variation from "$src/Variation.js";
+import { expect } from "chai";
+import { readFile } from "node:fs/promises";
+import { describe, it } from "node:test";
 
-test("parse headers", () => {
-  try {
-    const parser = new Parser(pgn1);
-    const { headers, result } = parser;
-    expect(headers.Event).toBe("CCRL 40/4");
-    expect(headers.Result).toBe(GameResults.DRAW);
-    expect(result).toBe(headers.Result as GameResult);
-  } catch (error) {
-    console.log({ cause: (error as Error).cause });
-  }
-});
+const pgn1 = await readFile("sample-PGNs/game1.pgn", "utf-8");
+const pgn2 = await readFile("sample-PGNs/game2.pgn", "utf-8");
+const pgn3 = await readFile("sample-PGNs/game3.pgn", "utf-8");
+const pgn4 = await readFile("sample-PGNs/game4.pgn", "utf-8");
+const pgn5 = await readFile("sample-PGNs/game5.pgn", "utf-8");
+const morphyGames = await readFile("sample-PGNs/Morphy-games.pgn", "utf-8");
 
-test("parse comments", () => {
-  const parser = new Parser(pgn2);
-  const { mainLine } = parser;
-  expect(mainLine.comment ?? "").toStartWith("WhiteEngineOptions: Protocol=uci;");
-  expect(mainLine.nodes.at(-1)?.comment ?? "").toStartWith("d=1, sd=1, pd=Qg5, mt=46, tl=134690, s=21, n=1, pv=Qxg5#, tb=0, h=0.0, ph=51.3, wv=M1, R50=50, Rd=-11, Rr=-1000, mb=-1+0+1+1+1, White mates");
-});
 
-test("parse variations", () => {
-  const parser = new Parser(pgn4);
-  const firstVar = parser.mainLine.nodes[2]?.variations?.at(0);
-  const lastMoveNode = parser.mainLine.nodes.at(-1);
-
-  expect(firstVar).toBeInstanceOf(Variation);
-  expect(firstVar?.nodes[0].moveNumber).toBe(2);
-  expect(firstVar?.nodes[0].notation).toBe("Nf3");
-  expect(lastMoveNode?.moveNumber).toBe(7);
-  expect(lastMoveNode?.notation).toBe("Nxd5");
-  expect(lastMoveNode?.isWhiteMove).toBeFalse();
-});
-
-test("parse annotated PGN", async () => {
-  const operaGamePGN = await fetchPGN("https://www.chessgames.com/nodejs/game/viewGamePGN?text=1&gid=1233404");
-  const parser = new Parser(operaGamePGN);
-  expect(parser.mainLine.nodes[5].comment).toBe("This is a weak move\nalready.--Fischer");
-});
-
-test("normalized PGN", async () => {
-  const oldestGamePGN = await fetchPGN("https://www.chessgames.com/nodejs/game/viewGamePGN?text=1&gid=1259987");
-  const parser = new Parser(oldestGamePGN);
-  const normalized = parser.getNormalizedPGN();
-  expect(normalized).toInclude(`1.e4 { This may be the oldest recorded game of chess. } d5 2.exd5 Qxd5 3.Nc3 Qd8 4.Bc4 Nf6 5.Nf3 Bg4 6.h3 Bxf3 7.Qxf3 e6 8.Qxb7 Nbd7 9.Nb5 Rc8 10.Nxa7 Nb6 11.Nxc8 Nxc8`);
-});
-
-test("split PGNs", async () => {
-  const PGNs = Parser.splitPGNs(morphyGames);
-  expect(PGNs).toHaveLength(193);
-});
-
-test("parse many", async () => {
-  const PGNs = Parser.splitPGNs(morphyGames);
-  for (const [index, PGN] of PGNs.entries()) {
+describe("Parser", () => {
+  it("should handle headers", () => {
     try {
-      new Parser(PGN);
+      const parser = new PGNParser(pgn1);
+      const { headers, result } = parser;
+      expect(headers.Event).to.equal("CCRL 40/4");
+      expect(headers.Result).to.equal(GameResults.DRAW);
+      expect(result).to.equal(headers.Result);
     } catch (error) {
-      if (error instanceof Error) {
-        console.log({
-          index,
-          PGN,
-          cause: error.cause
-        });
-      }
-      expect(false).toBeTrue();
-      break;
+      console.log({ error });
     }
-  }
+  });
+
+  it("should handle comments", () => {
+    const movesStart = "d=1, sd=1, pd=Qg5, mt=46, tl=134690, s=21, n=1, pv=Qxg5#, tb=0, h=0.0, ph=51.3, wv=M1, R50=50, Rd=-11, Rr=-1000, mb=-1+0+1+1+1, White mates";
+    const parser = new PGNParser(pgn2);
+    const { mainLine } = parser;
+    expect((mainLine.comment ?? "").startsWith("WhiteEngineOptions: Protocol=uci;")).to.be.true;
+    expect((mainLine.lastNode?.comment ?? "").startsWith(movesStart)).to.be.true;
+  });
+
+  it("should handle variations", () => {
+    const parser = new PGNParser(pgn4);
+    const firstVar = parser.mainLine.nodes[2]?.variations?.at(0);
+    const lastMoveNode = parser.mainLine.nodes.at(-1);
+
+    expect(firstVar).to.be.instanceOf(Variation);
+    expect(firstVar?.nodes[0].moveNumber).to.equal(2);
+    expect(firstVar?.nodes[0].notation).to.equal("Nf3");
+    expect(lastMoveNode?.moveNumber).to.equal(7);
+    expect(lastMoveNode?.notation).to.equal("Nxd5");
+    expect(lastMoveNode?.isWhiteMove).not.to.be.true;
+  });
+
+  it("should handle an annotated PGN", async () => {
+    const parser = new PGNParser(pgn5);
+    expect(parser.mainLine.nodes[5].comment).to.equal("This is a weak move\nalready.--Fischer");
+  });
+
+  it("should be able to produce a normalized output", async () => {
+    const parser = new PGNParser(pgn3);
+    const normalized = parser.getNormalizedPGN();
+    expect(normalized).to.contain(`1.e4 { This may be the oldest recorded game of chess. } d5 2.exd5 Qxd5 3.Nc3 Qd8 4.Bc4 Nf6 5.Nf3 Bg4 6.h3 Bxf3 7.Qxf3 e6 8.Qxb7 Nbd7 9.Nb5 Rc8 10.Nxa7 Nb6 11.Nxc8 Nxc8`);
+  });
 });
 
+describe("Multi-PGN mode", () => {
+  it("splitting", async () => {
+    const PGNs = PGNParser.splitPGNs(morphyGames);
+    expect(PGNs).to.have.length(193);
+  });
 
-const morphyGames = await Bun.file("sample-PGNs/Morphy-games.pgn").text();
-
-async function fetchPGN(url: string) {
-  const response = await fetch(url);
-  return response.text();
-}
+  it("parsing", async () => {
+    const PGNs = PGNParser.splitPGNs(morphyGames);
+    for (const [index, PGN] of PGNs.entries()) {
+      try {
+        new PGNParser(PGN);
+      } catch (error) {
+        console.log({ index, error });
+        expect(false).to.be.true;
+        break;
+      }
+    }
+  });
+});

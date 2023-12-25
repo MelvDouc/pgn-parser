@@ -1,6 +1,6 @@
-import { GameResult, IVariation, MoveNode } from "$src/typings/types.ts";
+import type { GameResult, MoveNode } from "$src/typings/types.js";
 
-export default class Variation implements IVariation {
+export default class Variation {
   private static stringifyMoveNode({ notation, moveNumber, isWhiteMove, comment, NAG }: MoveNode, isVarStartOrAfterVar: boolean) {
     if (NAG)
       notation += ` ${NAG}`;
@@ -21,19 +21,22 @@ export default class Variation implements IVariation {
   public comment?: string;
   public result?: GameResult;
 
-  public addVariation(tokenIndex: number): Variation {
-    const node = this.nodes.at(-1);
+  public get lastNode() {
+    return this.nodes[this.nodes.length - 1];
+  }
 
-    if (!node)
+  public addVariation(tokenIndex: number) {
+    if (this.nodes.length === 0)
       throw new SyntaxError(`A variation cannot start with a nested variation at index ${tokenIndex}.`);
 
+    const node = this.nodes[this.nodes.length - 1];
     const variation = new Variation();
     node.variations ??= [];
     node.variations.push(variation);
     return variation;
   }
 
-  public toString(): string {
+  public toString() {
     return this._toMoveText(0);
   }
 
@@ -46,7 +49,7 @@ export default class Variation implements IVariation {
       if (node.variations) {
         moveText += "\n";
         node.variations.forEach((variation) => {
-          moveText += `${leadingSpaces + "  "}( ${(variation as Variation)._toMoveText(depth + 1)} )\n`;
+          moveText += `${leadingSpaces + "  "}( ${variation._toMoveText(depth + 1)} )\n`;
         });
         moveText += leadingSpaces;
       } else if (i < arr.length - 1) {

@@ -1,12 +1,11 @@
-import TokenKind from "$src/constants/TokenKind.ts";
-import { Token } from "$src/typings/types.ts";
+import TokenKind from "$src/constants/TokenKind.js";
 import {
   EOF,
   isDigit,
   isGameResult,
   isNotReservedPunctuationOrWhitespace,
   isWhiteSpace
-} from "$src/utils/string-utils.ts";
+} from "$src/utils/string-utils.js";
 
 export default class Lexer {
   private index = 0;
@@ -23,7 +22,7 @@ export default class Lexer {
     return this.input[this.index];
   }
 
-  public lex(): Token {
+  public lex() {
     switch (this.current) {
       case EOF:
         return this.getEndOfFileToken();
@@ -44,11 +43,11 @@ export default class Lexer {
     }
   }
 
-  private advance(): void {
+  private advance() {
     this.index++;
   }
 
-  private getEndOfFileToken(): Token {
+  private getEndOfFileToken() {
     return {
       kind: TokenKind.EndOfFile,
       value: EOF,
@@ -56,7 +55,7 @@ export default class Lexer {
     };
   }
 
-  private getParenToken(kind: TokenKind.OpeningParenthesis | TokenKind.ClosingParenthesis): Token {
+  private getParenToken(kind: TokenKind.OpeningParenthesis | TokenKind.ClosingParenthesis) {
     const { index } = this;
     this.advance(); // skip paren
     return {
@@ -81,9 +80,9 @@ export default class Lexer {
     return substring;
   }
 
-  private scanHeader(): Token {
+  private scanHeader() {
     const { index } = this;
-    const header = this.scanWhile((_, substring) => substring.at(-1) !== "]");
+    const header = this.scanWhile((_, substring) => substring[substring.length - 1] !== "]");
     return {
       kind: TokenKind.Header,
       value: header,
@@ -91,10 +90,12 @@ export default class Lexer {
     };
   }
 
-  private scanComment(): Token {
+  private scanComment() {
     const { index } = this;
     this.advance(); // skip '{'
-    const comment = this.scanWhile((char, substring) => char !== "}" && substring.at(-1) !== "\\");
+    const comment = this.scanWhile((char, substring) => {
+      return char !== "}" && substring[substring.length - 1] !== "\\";
+    });
     this.advance(); // skip '}'
     return {
       kind: TokenKind.Comment,
@@ -103,7 +104,7 @@ export default class Lexer {
     };
   }
 
-  private scanPoints(): Token {
+  private scanPoints() {
     const { index } = this;
     const points = this.scanWhile((char) => char === ".");
     return {
@@ -113,7 +114,7 @@ export default class Lexer {
     };
   }
 
-  private scanNAG(): Token {
+  private scanNAG() {
     const { index } = this;
     this.advance(); // skip '$'
     const digits = this.scanWhile(isDigit);
@@ -124,7 +125,7 @@ export default class Lexer {
     return { kind, value: "$" + digits, index };
   }
 
-  private scanOther(): Token {
+  private scanOther() {
     const { index } = this;
 
     if (isWhiteSpace(this.current)) {

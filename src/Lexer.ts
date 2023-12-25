@@ -146,7 +146,7 @@ export default class Lexer {
         index
       };
 
-    if (isDigit(this.current))
+    if (/^\d+$/.test(value))
       return {
         kind: TokenKind.MoveNumber,
         value,

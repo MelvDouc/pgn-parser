@@ -9,6 +9,7 @@
     "forceConsistentCasingInFileNames": true,
     "noUnusedLocals": true,
     "verbatimModuleSyntax": true,
+    "declaration": true,
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {

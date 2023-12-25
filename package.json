@@ -28,7 +28,7 @@
   ],
   "license": "MIT",
   "scripts": {
-    "test": "tsx --test ./tests/**/*_test.ts",
+    "test": "tsx --test",
     "bench": "tsx ./benchmarks/Parser_bench.ts",
     "build": "rm -rf dist/* && npx tsc -p tsconfig.build.json && npx tsc-alias -p tsconfig.build.json",
     "prepublishOnly": "npm run build"

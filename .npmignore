@@ -6,7 +6,6 @@
 /tests
 
 .gitignore
-LICENSE
 package-lock.json
 README.md
 TODO.md

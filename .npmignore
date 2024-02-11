@@ -11,5 +11,4 @@
 package-lock.json
 README.md
 TODO.md
-tsconfig.build.json
 tsconfig.json

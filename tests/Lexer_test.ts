@@ -34,7 +34,6 @@ describe("Lexer", () => {
       token = lexer.lex();
       tokens.push(token);
     } while (token.kind !== TokenKind.EndOfFile);
-    console.log(tokens.map(({ kind }) => TokenKind[kind]));
     expect(tokens[0].kind).to.equal(TokenKind.MoveNumber);
     expect(tokens[0].value).to.equal("35");
     expect(tokens[1].kind).to.equal(TokenKind.Points);

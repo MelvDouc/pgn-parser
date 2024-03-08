@@ -1,18 +1,18 @@
 import Lexer from "$src/Lexer.js";
-import Variation from "$src/Variation.js";
+import GameResults from "$src/constants/GameResults.js";
 import TokenKind from "$src/constants/TokenKind.js";
 import { getMoveDetail } from "$src/move-detail.js";
-import type { GameResult, PGNHeaders, Token } from "$src/typings/types.js";
+import type { GameResult, PGNHeaders, Token, Variation } from "$src/typings/types.js";
 import { UnexpectedTokenError } from "$src/utils/errors.js";
 
 export default function parse(pgn: string) {
   const tokens = getTokens(pgn);
   const { headers, nextTokens } = parseHeaders(tokens);
-  const mainLine = parseMoves(nextTokens);
+  const { mainLine, result } = parseMoves(nextTokens);
   return {
     headers,
     mainLine,
-    result: mainLine.result
+    result: result ?? headers.Result ?? GameResults.NONE
   };
 }
 
@@ -45,51 +45,75 @@ export function parseHeaders(tokens: Token[]) {
 
 export function parseMoves(tokens: Token[]) {
   const stack: Variation[] = [];
-  let line = new Variation();
+  let variation: Variation = [];
   let token: Token;
+  let result: GameResult | null = null;
+  let commentBefore = "";
 
   for (let i = 0; i < tokens.length; i++) {
     token = tokens[i];
 
     switch (token.kind) {
-      case TokenKind.MoveNumber:
-        handleMoveNumber(line, token, getToken(tokens, ++i), getToken(tokens, ++i));
+      case TokenKind.MoveNumber: {
+        handleMoveNumber(variation, token, getToken(tokens, ++i), getToken(tokens, ++i));
+        if (commentBefore) {
+          variation[variation.length - 1].commentBefore = commentBefore;
+          commentBefore = "";
+        }
         break;
-      case TokenKind.Notation:
-        handleNotation(line, token);
+      }
+      case TokenKind.Notation: {
+        handleNotation(variation, token);
         break;
-      case TokenKind.NumericAnnotationGlyph:
-        handleNAG(line, token);
+      }
+      case TokenKind.NumericAnnotationGlyph: {
+        handleNAG(variation, token);
         break;
-      case TokenKind.Comment:
-        handleComment(line, token);
+      }
+      case TokenKind.Comment: {
+        variation.length === 0
+          ? (commentBefore = token.value)
+          : (variation[variation.length - 1].commentAfter = token.value);
         break;
-      case TokenKind.GameResult:
+      }
+      case TokenKind.GameResult: {
         if (stack.length > 0)
           throw new UnexpectedTokenError(token);
-        line.result = token.value as GameResult;
+        result = token.value as GameResult;
         break;
-      case TokenKind.OpeningParenthesis:
-        stack.push(line);
-        line = line.addVariation(token.index);
-        break;
-      case TokenKind.ClosingParenthesis:
-        const parentLine = stack.pop();
-        if (!parentLine)
+      }
+      case TokenKind.OpeningParenthesis: {
+        const lastNode = variation.at(-1);
+        if (!lastNode)
           throw new UnexpectedTokenError(token);
-        line = parentLine;
+        stack.push(variation);
+        variation = [];
+        lastNode.variations ??= [];
+        lastNode.variations.push(variation);
         break;
+      }
+      case TokenKind.ClosingParenthesis: {
+        const parentVar = stack.pop();
+        if (!parentVar)
+          throw new UnexpectedTokenError(token);
+        variation = parentVar;
+        break;
+      }
       case TokenKind.Header:
       case TokenKind.Points:
-      case TokenKind.Bad:
+      case TokenKind.Bad: {
         throw new UnexpectedTokenError(token);
+      }
     }
   }
 
   if (stack.length > 0)
     throw new SyntaxError(`Unfinished variation at index ${token!.index}.`);
 
-  return line;
+  return {
+    mainLine: variation,
+    result
+  };
 }
 
 export function getTokens(pgn: string) {
@@ -119,38 +143,27 @@ function assertKind(token: Token, expectedKind: TokenKind) {
     });
 }
 
-function handleMoveNumber(line: Variation, token: Token, pointsToken: Token, notationToken: Token) {
+function handleMoveNumber(variation: Variation, token: Token, pointsToken: Token, notationToken: Token) {
   assertKind(pointsToken, TokenKind.Points);
   assertKind(notationToken, TokenKind.Notation);
-  line.nodes.push({
+  variation.push({
     moveNumber: +token.value,
     detail: getMoveDetail(notationToken.value),
     isWhiteMove: pointsToken.value === "."
   });
 }
 
-function handleNotation(line: Variation, token: Token) {
-  const prevNode = line.lastNode;
-  line.nodes.push({
+function handleNotation(variation: Variation, token: Token) {
+  const prevNode = variation.at(-1);
+  variation.push({
     moveNumber: prevNode?.moveNumber ?? 1,
     detail: getMoveDetail(token.value),
     isWhiteMove: prevNode ? !prevNode.isWhiteMove : true
   });
 }
 
-function handleComment(line: Variation, token: Token) {
-  const moveNode = line.lastNode;
-
-  if (!moveNode) {
-    line.comment = token.value;
-    return;
-  }
-
-  moveNode.comment = token.value;
-}
-
-function handleNAG(line: Variation, token: Token) {
-  const moveNode = line.lastNode;
+function handleNAG(variation: Variation, token: Token) {
+  const moveNode = variation.at(-1);
 
   if (moveNode)
     moveNode.NAG = token.value;

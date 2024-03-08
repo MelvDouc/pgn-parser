@@ -1,4 +1,3 @@
-import type Variation from "$src/Variation.js";
 import GameResults from "$src/constants/GameResults.js";
 import TokenKind from "$src/constants/TokenKind.js";
 import type { MoveDetail } from "$src/move-detail.js";
@@ -51,12 +50,15 @@ export interface Token {
   readonly index: number;
 }
 
+export type Variation = MoveNode[];
+
 export interface MoveNode {
   detail: MoveDetail;
   moveNumber: number;
   isWhiteMove: boolean;
   NAG?: string;
-  comment?: string;
+  commentBefore?: string;
+  commentAfter?: string;
   variations?: Variation[];
 };
 

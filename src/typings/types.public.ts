@@ -1,6 +1,6 @@
 export type {
   GameResult,
-  MoveDetail,
+  Move,
   MoveNode,
   PGNHeaders,
   Variation

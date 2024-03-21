@@ -4,22 +4,23 @@ import {
   isDigit,
   isGameResult,
   isNotReservedPunctuationOrWhitespace,
+  isNumeric,
   isWhiteSpace
 } from "$src/utils/string-utils.js";
 
 export default class Lexer {
-  private index = 0;
   private readonly input: string;
+  private index = 0;
 
   public constructor(input: string) {
     this.input = input;
   }
 
   private get current(): string {
-    if (this.index >= this.input.length)
-      return EOF;
+    if (this.index < this.input.length)
+      return this.input[this.index];
 
-    return this.input[this.index];
+    return EOF;
   }
 
   public lex() {
@@ -65,15 +66,15 @@ export default class Lexer {
     };
   }
 
-  private scanWhile(predicate: (char: string, substring: string) => boolean): string {
+  private scanWhile(predicate: (ch: string, substring: string) => boolean): string {
     let substring = "";
 
     for (
-      let char = this.current;
-      char !== EOF && predicate(char, substring);
-      char = this.current
+      let ch = this.current;
+      ch !== EOF && predicate(ch, substring);
+      ch = this.current
     ) {
-      substring += char;
+      substring += ch;
       this.advance();
     }
 
@@ -82,7 +83,7 @@ export default class Lexer {
 
   private scanHeader() {
     const { index } = this;
-    const header = this.scanWhile((_, substring) => substring[substring.length - 1] !== "]");
+    const header = this.scanWhile((_, substring) => substring.at(-1) !== "]");
     return {
       kind: TokenKind.Header,
       value: header,
@@ -93,8 +94,8 @@ export default class Lexer {
   private scanComment() {
     const { index } = this;
     this.advance(); // skip '{'
-    const comment = this.scanWhile((char, substring) => {
-      return char !== "}" && substring[substring.length - 1] !== "\\";
+    const comment = this.scanWhile((ch, substring) => {
+      return ch !== "}" && substring.at(-1) !== "\\";
     });
     this.advance(); // skip '}'
     return {
@@ -106,7 +107,7 @@ export default class Lexer {
 
   private scanPoints() {
     const { index } = this;
-    const points = this.scanWhile((char) => char === ".");
+    const points = this.scanWhile((ch) => ch === ".");
     return {
       kind: TokenKind.Points,
       value: points,
@@ -138,23 +139,11 @@ export default class Lexer {
     }
 
     const value = this.scanWhile(isNotReservedPunctuationOrWhitespace);
-
-    if (isGameResult(value))
-      return {
-        kind: TokenKind.GameResult,
-        value,
-        index
-      };
-
-    if (/^\d+$/.test(value))
-      return {
-        kind: TokenKind.MoveNumber,
-        value,
-        index
-      };
-
+    const kind = isGameResult(value) ? TokenKind.GameResult
+      : isNumeric(value) ? TokenKind.MoveNumber
+        : TokenKind.Notation;
     return {
-      kind: TokenKind.Notation,
+      kind,
       value,
       index
     };

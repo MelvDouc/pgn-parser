@@ -1,7 +1,7 @@
 import Lexer from "$src/Lexer.js";
 import GameResults from "$src/constants/GameResults.js";
 import TokenKind from "$src/constants/TokenKind.js";
-import { getMoveDetail } from "$src/move-detail.js";
+import { getMove } from "$src/move.js";
 import type { GameResult, PGNHeaders, Token, Variation } from "$src/typings/types.js";
 import { UnexpectedTokenError } from "$src/utils/errors.js";
 
@@ -148,7 +148,7 @@ function handleMoveNumber(variation: Variation, token: Token, pointsToken: Token
   assertKind(notationToken, TokenKind.Notation);
   variation.push({
     moveNumber: +token.value,
-    detail: getMoveDetail(notationToken.value),
+    move: getMove(notationToken.value),
     isWhiteMove: pointsToken.value === "."
   });
 }
@@ -157,7 +157,7 @@ function handleNotation(variation: Variation, token: Token) {
   const prevNode = variation.at(-1);
   variation.push({
     moveNumber: prevNode?.moveNumber ?? 1,
-    detail: getMoveDetail(token.value),
+    move: getMove(token.value),
     isWhiteMove: prevNode ? !prevNode.isWhiteMove : true
   });
 }

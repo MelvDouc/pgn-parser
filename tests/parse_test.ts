@@ -36,10 +36,10 @@ describe("Parser", () => {
 
     expect(firstVar).to.be.instanceOf(Array);
     expect(firstVar?.at(0)?.moveNumber).to.equal(2);
-    expect(firstVar?.at(0)?.detail.type).to.equal("piece-move");
+    expect(firstVar?.at(0)?.move.type).to.equal("piece-move");
     expect(lastMoveNode?.moveNumber).to.equal(7);
     // @ts-expect-error Undetermined move type.
-    expect(lastMoveNode?.detail.destSquare).to.equal("d5");
+    expect(lastMoveNode?.move.destNotation).to.equal("d5");
     expect(lastMoveNode?.isWhiteMove).not.to.be.true;
   });
 

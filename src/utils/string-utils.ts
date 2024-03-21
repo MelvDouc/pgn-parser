@@ -3,52 +3,58 @@ import type { GameResult } from "$src/typings/types.js";
 
 export const EOF = "\0";
 
-export function isDigit(char: string) {
-  return char === "0"
-    || char === "1"
-    || char === "2"
-    || char === "3"
-    || char === "4"
-    || char === "5"
-    || char === "6"
-    || char === "7"
-    || char === "8"
-    || char === "9";
+export function isDigit(ch: string) {
+  return ch === "0"
+    || ch === "1"
+    || ch === "2"
+    || ch === "3"
+    || ch === "4"
+    || ch === "5"
+    || ch === "6"
+    || ch === "7"
+    || ch === "8"
+    || ch === "9";
 }
 
-export function isWhiteSpace(char: string) {
-  return char === " "
-    || char === "\n"
-    || char === "\t"
-    || char === "\r"
-    || char === "\f"
-    || char === "\v"
-    || char === "\u00a0"
-    || char === "\u1680"
-    || char === "\u2000"
-    || char === "\u200a"
-    || char === "\u2028"
-    || char === "\u2029"
-    || char === "\u202f"
-    || char === "\u205f"
-    || char === "\u3000"
-    || char === "\ufeff";
+const numericRegex = /^\d+$/;
+
+export function isNumeric(str: string) {
+  return numericRegex.test(str);
 }
 
-export function isBracket(char: string) {
-  return char === "("
-    || char === ")"
-    || char === "["
-    || char === "]"
-    || char === "{"
-    || char === "}";
+export function isWhiteSpace(ch: string) {
+  return ch === " "
+    || ch === "\n"
+    || ch === "\t"
+    || ch === "\r"
+    || ch === "\f"
+    || ch === "\v"
+    || ch === "\u00a0"
+    || ch === "\u1680"
+    || ch === "\u2000"
+    || ch === "\u200a"
+    || ch === "\u2028"
+    || ch === "\u2029"
+    || ch === "\u202f"
+    || ch === "\u205f"
+    || ch === "\u3000"
+    || ch === "\ufeff";
 }
 
-export function isNotReservedPunctuationOrWhitespace(char: string) {
-  return char !== "."
-    && char !== "$"
-    && !isBracket(char)
-    && !isWhiteSpace(char);
+export function isBracket(ch: string) {
+  return ch === "("
+    || ch === ")"
+    || ch === "["
+    || ch === "]"
+    || ch === "{"
+    || ch === "}";
+}
+
+export function isNotReservedPunctuationOrWhitespace(ch: string) {
+  return ch !== "."
+    && ch !== "$"
+    && !isBracket(ch)
+    && !isWhiteSpace(ch);
 }
 
 export function isGameResult(arg: string): arg is GameResult {

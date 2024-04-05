@@ -1,9 +1,9 @@
+import GameResults from "$src/GameResults.js";
 import Lexer from "$src/Lexer.js";
-import GameResults from "$src/constants/GameResults.js";
-import TokenKind from "$src/constants/TokenKind.js";
+import TokenKind from "$src/TokenKind.js";
+import { UnexpectedTokenError } from "$src/errors.js";
 import { getMove } from "$src/move.js";
 import type { GameResult, PGNHeaders, Token, Variation } from "$src/typings/types.js";
-import { UnexpectedTokenError } from "$src/utils/errors.js";
 
 export default function parse(pgn: string) {
   const tokens = getTokens(pgn);

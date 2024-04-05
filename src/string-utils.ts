@@ -1,4 +1,4 @@
-import GameResults from "$src/constants/GameResults.js";
+import GameResults from "$src/GameResults.js";
 import type { GameResult } from "$src/typings/types.js";
 
 export const EOF = "\0";
@@ -62,4 +62,34 @@ export function isGameResult(arg: string): arg is GameResult {
     || arg === GameResults.DRAW
     || arg === GameResults.WHITE_WIN
     || arg === GameResults.BLACK_WIN;
+}
+
+export function isPieceInitial(ch: string) {
+  return ch === "N"
+    || ch === "B"
+    || ch === "R"
+    || ch === "Q"
+    || ch === "K";
+}
+
+export function isFile(ch: string) {
+  return ch === "a"
+    || ch === "b"
+    || ch === "c"
+    || ch === "d"
+    || ch === "e"
+    || ch === "f"
+    || ch === "g"
+    || ch === "h";
+}
+
+export function isRank(ch: string) {
+  return ch === "1"
+    || ch === "2"
+    || ch === "3"
+    || ch === "4"
+    || ch === "5"
+    || ch === "6"
+    || ch === "7"
+    || ch === "8";
 }

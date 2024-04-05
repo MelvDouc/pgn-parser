@@ -1,5 +1,5 @@
-import GameResults from "$src/constants/GameResults.js";
-import TokenKind from "$src/constants/TokenKind.js";
+import GameResults from "$src/GameResults.js";
+import TokenKind from "$src/TokenKind.js";
 import type { Move } from "$src/move.js";
 
 // ===== ===== ===== ===== =====

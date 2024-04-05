@@ -1,4 +1,4 @@
-import TokenKind from "$src/constants/TokenKind.js";
+import TokenKind from "$src/TokenKind.js";
 import {
   EOF,
   isDigit,
@@ -6,7 +6,7 @@ import {
   isNotReservedPunctuationOrWhitespace,
   isNumeric,
   isWhiteSpace
-} from "$src/utils/string-utils.js";
+} from "$src/string-utils.js";
 
 export default class Lexer {
   private readonly input: string;

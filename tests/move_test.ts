@@ -7,9 +7,10 @@ describe("piece move", () => {
     const detail = getMove("Qe4");
     if (detail.type === "piece-move") {
       expect(detail.pieceInitial).to.equal("Q");
-      expect(detail.srcRank).to.be.undefined;
-      expect(detail.srcFile).to.be.undefined;
-      expect(detail.destNotation).to.equal("e4");
+      expect(detail.srcY).to.be.undefined;
+      expect(detail.srcX).to.be.undefined;
+      expect(detail.destX).to.equal(4);
+      expect(detail.destY).to.equal(3);
       return;
     }
     expect(false).to.be.true;
@@ -19,9 +20,10 @@ describe("piece move", () => {
     const detail = getMove("Rxa1+");
     if (detail.type === "piece-move") {
       expect(detail.pieceInitial).to.equal("R");
-      expect(detail.srcRank).to.be.undefined;
-      expect(detail.srcFile).to.be.undefined;
-      expect(detail.destNotation).to.equal("a1");
+      expect(detail.srcY).to.be.undefined;
+      expect(detail.srcX).to.be.undefined;
+      expect(detail.destX).to.equal(0);
+      expect(detail.destY).to.equal(0);
       return;
     }
     expect(false).to.be.true;
@@ -31,9 +33,10 @@ describe("piece move", () => {
     const detail = getMove("N1d3");
     if (detail.type === "piece-move") {
       expect(detail.pieceInitial).to.equal("N");
-      expect(detail.srcRank).to.equal("1");
-      expect(detail.srcFile).to.be.undefined;
-      expect(detail.destNotation).to.equal("d3");
+      expect(detail.srcY).to.equal(0);
+      expect(detail.srcX).to.be.undefined;
+      expect(detail.destX).to.equal(3);
+      expect(detail.destY).to.equal(2);
       return;
     }
     expect(false).to.be.true;
@@ -43,9 +46,10 @@ describe("piece move", () => {
     const detail = getMove("B8xb2");
     if (detail.type === "piece-move") {
       expect(detail.pieceInitial).to.equal("B");
-      expect(detail.srcRank).to.equal("8");
-      expect(detail.srcFile).to.be.undefined;
-      expect(detail.destNotation).to.equal("b2");
+      expect(detail.srcY).to.equal(7);
+      expect(detail.srcX).to.be.undefined;
+      expect(detail.destX).to.equal(1);
+      expect(detail.destY).to.equal(1);
       return;
     }
     expect(false).to.be.true;
@@ -55,9 +59,10 @@ describe("piece move", () => {
     const detail = getMove("Rad1#");
     if (detail.type === "piece-move") {
       expect(detail.pieceInitial).to.equal("R");
-      expect(detail.srcRank).to.be.undefined;
-      expect(detail.srcFile).to.equal("a");
-      expect(detail.destNotation).to.equal("d1");
+      expect(detail.srcY).to.be.undefined;
+      expect(detail.srcX).to.equal(0);
+      expect(detail.destX).to.equal(3);
+      expect(detail.destY).to.equal(0);
       return;
     }
     expect(false).to.be.true;
@@ -67,9 +72,10 @@ describe("piece move", () => {
     const detail = getMove("Raxd1");
     if (detail.type === "piece-move") {
       expect(detail.pieceInitial).to.equal("R");
-      expect(detail.srcRank).to.be.undefined;
-      expect(detail.srcFile).to.equal("a");
-      expect(detail.destNotation).to.equal("d1");
+      expect(detail.srcY).to.be.undefined;
+      expect(detail.srcX).to.equal(0);
+      expect(detail.destX).to.equal(3);
+      expect(detail.destY).to.equal(0);
       return;
     }
     expect(false).to.be.true;
@@ -80,8 +86,9 @@ describe("pawn move", () => {
   it("e4", () => {
     const detail = getMove("e4");
     if (detail.type === "pawn-move") {
-      expect(detail.srcFile).to.equal("e");
-      expect(detail.destNotation).to.equal("e4");
+      expect(detail.srcX).to.equal(4);
+      expect(detail.destX).to.equal(4);
+      expect(detail.destY).to.equal(3);
       expect(detail.promotionInitial).to.be.undefined;
       return;
     }
@@ -91,8 +98,9 @@ describe("pawn move", () => {
   it("b7+", () => {
     const detail = getMove("b7+");
     if (detail.type === "pawn-move") {
-      expect(detail.srcFile).to.equal("b");
-      expect(detail.destNotation).to.equal("b7");
+      expect(detail.srcX).to.equal(1);
+      expect(detail.destX).to.equal(1);
+      expect(detail.destY).to.equal(6);
       expect(detail.promotionInitial).to.be.undefined;
       return;
     }
@@ -102,8 +110,9 @@ describe("pawn move", () => {
   it("axb1=R+", () => {
     const detail = getMove("axb1=R+");
     if (detail.type === "pawn-move") {
-      expect(detail.srcFile).to.equal("a");
-      expect(detail.destNotation).to.equal("b1");
+      expect(detail.srcX).to.equal(0);
+      expect(detail.destX).to.equal(1);
+      expect(detail.destY).to.equal(0);
       expect(detail.promotionInitial).to.equal("R");
       return;
     }

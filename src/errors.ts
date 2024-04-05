@@ -1,4 +1,4 @@
-import TokenKind from "$src/constants/TokenKind.js";
+import TokenKind from "$src/TokenKind.js";
 import type { Token } from "$src/typings/types.js";
 
 export class UnexpectedTokenError<T extends object> extends SyntaxError {

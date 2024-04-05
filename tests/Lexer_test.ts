@@ -1,4 +1,4 @@
-import TokenKind from "$src/constants/TokenKind.js";
+import TokenKind from "$src/TokenKind.js";
 import Lexer from "$src/Lexer.js";
 import type { Token } from "$src/typings/types.js";
 import { expect } from "chai";

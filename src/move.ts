@@ -22,7 +22,18 @@ const ranks: Readonly<Record<string, number>> = {
   "8": 7
 };
 
-export function getMove(notation: string): Move {
+const moveCache = new Map<string, Move>();
+
+export function getMove(notation: string) {
+  if (moveCache.has(notation))
+    return moveCache.get(notation) as Move;
+
+  const move = getMoveUncached(notation);
+  moveCache.set(notation, move);
+  return move;
+}
+
+function getMoveUncached(notation: string): Move {
   if (isPieceInitial(notation[0]))
     return getPieceMove(notation.replace("x", ""));
 

@@ -16,10 +16,12 @@ export function isDigit(ch: string) {
     || ch === "9";
 }
 
-const numericRegex = /^\d+$/;
-
 export function isNumeric(str: string) {
-  return numericRegex.test(str);
+  for (const ch of str)
+    if (!isDigit(ch))
+      return false;
+
+  return true;
 }
 
 export function isWhiteSpace(ch: string) {

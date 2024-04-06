@@ -51,15 +51,17 @@ describe("Parser", () => {
 
 describe("Multi-PGN mode", () => {
   it("splitting", async () => {
-    const PGNs = splitPGNs(morphyGames);
+    const PGNs = [...splitPGNs(morphyGames)];
     expect(PGNs).to.have.length(193);
   });
 
   it("parsing", async () => {
-    const PGNs = splitPGNs(morphyGames);
-    for (const [index, PGN] of PGNs.entries()) {
+    let index = 0;
+
+    for (const PGN of splitPGNs(morphyGames)) {
       try {
         parse(PGN);
+        index++;
       } catch (error) {
         console.log({ index, error });
         expect(false).to.be.true;

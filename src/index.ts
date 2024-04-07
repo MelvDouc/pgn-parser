@@ -1,11 +1,10 @@
 import type * as PGNify from "$src/typings/types.public.js";
 
 export { default as GameResults } from "$src/GameResults.js";
-export { splitPGNs, stringifyHeaders } from "$src/misc.js";
+export { parseHeaders, stringifyHeaders } from "$src/headers.js";
 export {
   default as parse,
-  getTokens,
-  parseHeaders,
-  parseMoves
+  parseMoveString,
+  splitPGNs
 } from "$src/parse.js";
 export type { PGNify };

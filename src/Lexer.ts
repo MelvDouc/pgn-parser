@@ -8,6 +8,9 @@ import {
   isWhiteSpace
 } from "$src/string-utils.js";
 
+/**
+ * A class to tokenize a move string.
+ */
 export default class Lexer {
   private readonly input: string;
   private index = 0;
@@ -31,8 +34,6 @@ export default class Lexer {
         return this.getParenToken(TokenKind.OpeningParenthesis);
       case ")":
         return this.getParenToken(TokenKind.ClosingParenthesis);
-      case "[":
-        return this.scanHeader();
       case "{":
         return this.scanComment();
       case ".":
@@ -79,16 +80,6 @@ export default class Lexer {
     }
 
     return substring;
-  }
-
-  private scanHeader() {
-    const { index } = this;
-    const header = this.scanWhile((_, substring) => substring.at(-1) !== "]");
-    return {
-      kind: TokenKind.Header,
-      value: header,
-      index
-    };
   }
 
   private scanComment() {

@@ -3,12 +3,12 @@ import Lexer from "$src/Lexer.js";
 import TokenKind from "$src/TokenKind.js";
 import { UnexpectedTokenError } from "$src/errors.js";
 import { getMove } from "$src/move.js";
-import type { GameResult, PGNHeaders, Token, Variation } from "$src/typings/types.js";
+import type { GameResult, Token, Variation } from "$src/typings/types.js";
+import { parseHeaders } from "./headers.js";
 
 export default function parse(pgn: string) {
-  const tokens = getTokens(pgn);
-  const { headers, nextTokens } = parseHeaders(tokens);
-  const { mainLine, result } = parseMoves(nextTokens);
+  const { headers, moveString } = parseHeaders(pgn);
+  const { mainLine, result } = parseMoveString(moveString);
   return {
     headers,
     mainLine,
@@ -16,34 +16,8 @@ export default function parse(pgn: string) {
   };
 }
 
-export function parseHeaders(tokens: Token[]) {
-  const headers: PGNHeaders = {};
-  const headerRegex = /\[(?<key>\w+)\s+"(?<value>[^"]*)"\]/;
-  let i = 0;
-
-  while (i < tokens.length) {
-    const token = tokens[i];
-
-    if (token.kind !== TokenKind.Header)
-      break;
-
-    const matchArr = token.value.match(headerRegex);
-
-    if (!matchArr)
-      throw new UnexpectedTokenError(token);
-
-    const { key, value } = matchArr.groups!;
-    headers[key] = value;
-    i++;
-  }
-
-  return {
-    nextTokens: tokens.slice(i),
-    headers
-  };
-}
-
-export function parseMoves(tokens: Token[]) {
+export function parseMoveString(moveString: string) {
+  const tokens = getTokens(moveString);
   const stack: Variation[] = [];
   let variation: Variation = [];
   let token: Token;
@@ -55,7 +29,9 @@ export function parseMoves(tokens: Token[]) {
 
     switch (token.kind) {
       case TokenKind.MoveNumber: {
-        handleMoveNumber(variation, token, getToken(tokens, ++i), getToken(tokens, ++i));
+        if (i + 2 >= tokens.length)
+          throw new UnexpectedTokenError(token);
+        handleMoveNumber(variation, token, tokens[++i], tokens[++i]);
         if (commentBefore) {
           variation[variation.length - 1].commentBefore = commentBefore;
           commentBefore = "";
@@ -99,7 +75,6 @@ export function parseMoves(tokens: Token[]) {
         variation = parentVar;
         break;
       }
-      case TokenKind.Header:
       case TokenKind.Points:
       case TokenKind.Bad: {
         throw new UnexpectedTokenError(token);
@@ -116,8 +91,8 @@ export function parseMoves(tokens: Token[]) {
   };
 }
 
-export function getTokens(pgn: string) {
-  const lexer = new Lexer(pgn);
+function getTokens(moveString: string) {
+  const lexer = new Lexer(moveString);
   const tokens: Token[] = [];
   let token: Token;
 
@@ -130,12 +105,6 @@ export function getTokens(pgn: string) {
   return tokens;
 }
 
-function getToken(tokens: Token[], index: number) {
-  return index >= tokens.length
-    ? tokens[tokens.length - 1]
-    : tokens[index];
-}
-
 function assertKind(token: Token, expectedKind: TokenKind) {
   if (token.kind !== expectedKind)
     throw new UnexpectedTokenError(token, {
@@ -143,11 +112,11 @@ function assertKind(token: Token, expectedKind: TokenKind) {
     });
 }
 
-function handleMoveNumber(variation: Variation, token: Token, pointsToken: Token, notationToken: Token) {
+function handleMoveNumber(variation: Variation, moveNoToken: Token, pointsToken: Token, notationToken: Token) {
   assertKind(pointsToken, TokenKind.Points);
   assertKind(notationToken, TokenKind.Notation);
   variation.push({
-    moveNumber: +token.value,
+    moveNumber: +moveNoToken.value,
     move: getMove(notationToken.value),
     isWhiteMove: pointsToken.value === "."
   });
@@ -167,4 +136,27 @@ function handleNAG(variation: Variation, token: Token) {
 
   if (moveNode)
     moveNode.NAG = token.value;
+}
+
+// ===== ===== ===== ===== =====
+// SPLITTING
+// ===== ===== ===== ===== =====
+
+const resultRegex = /(\*|1\/2-1\/2|[01]-[01])\s*$/;
+
+export function* splitPGNs(input: string) {
+  const lines = input.split(/\r?\n/);
+  let PGN = "";
+
+  for (const line of lines) {
+    PGN += line;
+
+    if (resultRegex.test(line)) {
+      yield PGN;
+      PGN = "";
+      continue;
+    }
+
+    PGN += " ";
+  }
 }

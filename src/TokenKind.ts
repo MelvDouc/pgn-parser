@@ -5,7 +5,6 @@ enum TokenKind {
   OpeningParenthesis,
   ClosingParenthesis,
   Points,
-  Header,
   MoveNumber,
   Notation,
   NumericAnnotationGlyph,

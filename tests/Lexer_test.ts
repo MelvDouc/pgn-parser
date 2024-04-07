@@ -5,13 +5,6 @@ import { expect } from "chai";
 import { describe, it } from "node:test";
 
 describe("Lexer", () => {
-  it("header", () => {
-    const lexer = new Lexer(`[Result "1-0"]`);
-    const token = lexer.lex();
-    expect(token.kind).to.equal(TokenKind.Header);
-    expect(token.value).to.equal(`[Result "1-0"]`);
-  });
-
   it("NAG", () => {
     const lexer = new Lexer("$4");
     const token = lexer.lex();
